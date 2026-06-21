@@ -39,7 +39,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="welcome">Welcome to Our Wedding</div>
     <h1>Find Your Seat</h1>
     <div class="divider"></div>
-    <div class="subtitle">Search your name or tap the first<br>letter of your last name</div>
+    <div class="subtitle">Search your name or tap the first<br>letter of your <strong>first name</strong></div>
   </div>
 
   <div class="search-wrap">
@@ -47,7 +47,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <div id="view-home">
-    <div class="section-lbl">Last name begins with</div>
+    <div class="section-lbl">First name begins with</div>
     <div class="alpha-grid" id="alpha-grid"></div>
     <div class="count-note" id="count-note"></div>
   </div>
@@ -68,7 +68,7 @@ const GUESTS = [{"first":"Aasim","last":"Afzal","table":5},{"first":"Aasiya","la
 
 function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1).toLowerCase():'';}
 function fullName(g){return cap(g.first)+' '+cap(g.last);}
-function byLetter(l){return GUESTS.filter(g=>g.last.toUpperCase().startsWith(l)).sort((a,b)=>a.last.localeCompare(b.last)||a.first.localeCompare(b.first));}
+function byLetter(l){return GUESTS.filter(g=>g.first.charAt(0).toUpperCase()===l).sort((a,b)=>a.first.localeCompare(b.first)||a.last.localeCompare(b.last));}
 
 function card(g){
   return `<div class="result-card"><span class="guest-name">${fullName(g)}</span><span class="table-pill">Table <strong>${g.table}</strong></span></div>`;
