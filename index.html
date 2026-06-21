@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Find Your Seat</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#faf9f7;color:#1a1a1a;min-height:100vh}
+.app{max-width:480px;margin:0 auto;padding:0 1rem 4rem}
+.header{text-align:center;padding:2.5rem 0 1.75rem;border-bottom:1px solid #e8e4df}
+.header .welcome{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:0.5rem}
+.header h1{font-family:Georgia,serif;font-size:34px;font-weight:400;font-style:italic;color:#1a1a1a;line-height:1.2}
+.header .divider{width:36px;height:1px;background:#c8c0b8;margin:1rem auto 0.75rem}
+.header .subtitle{font-size:13px;color:#888;line-height:1.5}
+.search-wrap{padding:1.25rem 0 0.5rem}
+.search-wrap input{width:100%;padding:12px 16px;font-size:15px;border:1px solid #ddd;border-radius:12px;background:#fff;color:#1a1a1a;outline:none;-webkit-appearance:none}
+.search-wrap input:focus{border-color:#aaa}
+.section-lbl{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#aaa;margin:1.25rem 0 0.75rem}
+.alpha-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:0.5rem}
+.alpha-btn{background:#fff;border:1px solid #e0dbd4;border-radius:10px;padding:13px 4px;font-size:14px;font-weight:500;color:#1a1a1a;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent}
+.alpha-btn:active{background:#f0ede8}
+.alpha-btn.has-guests{border-color:#bbb}
+.alpha-btn.empty{color:#ccc;border-color:#eee}
+.results-wrap{padding-top:0.5rem}
+.letter-heading{font-family:Georgia,serif;font-size:30px;font-style:italic;font-weight:400;color:#1a1a1a;margin-bottom:0.9rem}
+.back-btn{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#888;background:none;border:none;cursor:pointer;margin-bottom:1.1rem;padding:0;-webkit-tap-highlight-color:transparent}
+.result-card{background:#fff;border:1px solid #ebe6e0;border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.guest-name{font-size:15px;font-weight:500;color:#1a1a1a;line-height:1.3}
+.table-pill{background:#f5f2ee;border:1px solid #e0dbd4;border-radius:20px;padding:5px 14px;font-size:13px;color:#555;white-space:nowrap;flex-shrink:0}
+.table-pill strong{font-weight:600;color:#1a1a1a}
+.empty-msg{text-align:center;color:#aaa;font-size:14px;padding:2.5rem 0}
+.count-note{font-size:12px;color:#bbb;text-align:center;margin-top:0.5rem}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="welcome">Welcome to Our Wedding</div>
+    <h1>Find Your Seat</h1>
+    <div class="divider"></div>
+    <div class="subtitle">Search your name or tap the first<br>letter of your last name</div>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="Search your name..." autocomplete="off" autocorrect="off" spellcheck="false" oninput="handleSearch(this.value)">
+  </div>
+
+  <div id="view-home">
+    <div class="section-lbl">Last name begins with</div>
+    <div class="alpha-grid" id="alpha-grid"></div>
+    <div class="count-note" id="count-note"></div>
+  </div>
+
+  <div id="view-search" style="display:none">
+    <div class="results-wrap" id="search-results"></div>
+  </div>
+
+  <div id="view-letter" style="display:none">
+    <button class="back-btn" onclick="showHome()">← Back</button>
+    <div class="letter-heading" id="letter-heading"></div>
+    <div id="letter-results"></div>
+  </div>
+</div>
+
+<script>
+const GUESTS = [{"first":"Aasim","last":"Afzal","table":5},{"first":"Aasiya","last":"Ahmad","table":12},{"first":"Abdullah","last":"Alam","table":7},{"first":"Afshan","last":"Syed","table":20},{"first":"Ahmed","last":"Alshamary","table":14},{"first":"Ainul","last":"Hoda","table":13},{"first":"Aiza","last":"khan","table":18},{"first":"Ajantha","last":"Rangasamy","table":26},{"first":"Alexander","last":"Mathew","table":22},{"first":"Alice","last":"Chudnovsky","table":14},{"first":"Alyea","last":"Abdullah","table":25},{"first":"Amira","last":"Iqbal","table":8},{"first":"Ammaar","last":"Iqbal","table":7},{"first":"Ammara","last":"Hoda","table":12},{"first":"Angela","last":"Malak","table":21},{"first":"Anita","last":"Ramasamy","table":23},{"first":"Anwar","last":"Quddus","table":19},{"first":"Anwar","last":"Rizvi","table":26},{"first":"Areej","last":"Qamar","table":8},{"first":"Areesha","last":"Hoda","table":12},{"first":"Arianna","last":"Iqbal","table":8},{"first":"Aruna","last":"kapoor","table":23},{"first":"Asim","last":"Azfar","table":7},{"first":"Aslam","last":"Khan","table":24},{"first":"Atique","last":"Khan","table":6},{"first":"Atiya","last":"Hoda","table":13},{"first":"Aurora","last":"Sanchez","table":21},{"first":"Ayesha","last":"Haque","table":16},{"first":"Ayesha","last":"Khan","table":18},{"first":"Ayla","last":"Abdullah","table":25},{"first":"Azra","last":"Ahmad","table":18},{"first":"Badrul","last":"Hoda","table":13},{"first":"Belinda","last":"Sheppard","table":28},{"first":"Benyamin","last":"Hannallah","table":27},{"first":"Bushra Leena","last":"Afzal","table":5},{"first":"Chanchal","last":"Goel","table":26},{"first":"Christine","last":"Gerula","table":24},{"first":"Christopher","last":"Woodhouse","table":9},{"first":"Daniel","last":"Ma","table":14},{"first":"Daniya","last":"Quddus","table":19},{"first":"Danya","last":"Ansari","table":10},{"first":"David","last":"Santos Malave","table":9},{"first":"David","last":"Lysenko","table":14},{"first":"David","last":"Hernandez","table":21},{"first":"DAVIE-ANN","last":"ELVIN","table":28},{"first":"Deva","last":"Iyengar","table":23},{"first":"didar","last":"Islami","table":30},{"first":"Dina","last":"Loureiro","table":25},{"first":"Dr. Ali","last":"Rizvi","table":24},{"first":"Dr. Iftikar","last":"Kadri","table":29},{"first":"Dr. M Yusuf","last":"Sandhu","table":17},{"first":"Dr. Mahmooda","last":"Perveen","table":26},{"first":"Dr.Bankimchandra","last":"Desai","table":23},{"first":"Dr.Vijay","last":"Singh","table":22},{"first":"Dr.Vinod","last":"Kapoor","table":23},{"first":"ELIZABETH","last":"DE JESUS","table":21},{"first":"Elizabeth","last":"Lopez","table":21},{"first":"Erum","last":"Bokhari","table":15},{"first":"Erum","last":"Zahid","table":27},{"first":"Fahad","last":"Hashmi","table":6},{"first":"Faisal","last":"Iqbal","table":8},{"first":"Faiz","last":"Hoda","table":12},{"first":"Farah","last":"Zeba","table":16},{"first":"Faraz","last":"Athar","table":16},{"first":"Fariha","last":"Noman","table":7},{"first":"Fatimah","last":"Alam","table":7},{"first":"Ferid","last":"Bedrolli","table":30},{"first":"FERKHANDA","last":"NAJIB","table":15},{"first":"Frederick","last":"Baker","table":29},{"first":"Gabriel","last":"Santos Malave","table":14},{"first":"Gail","last":"Baker","table":29},{"first":"Ghazala","last":"Quddus","table":19},{"first":"Gladys","last":"Belarmino","table":29},{"first":"Gulnaz","last":"Hashmi","table":8},{"first":"Hafsah F","last":"Ahmed","table":5},{"first":"Hamed","last":"Qaisar","table":18},{"first":"Hammad","last":"Choudhry","table":27},{"first":"Hamza","last":"Khan","table":18},{"first":"Hamzah","last":"Ashraf","table":4},{"first":"Hanna","last":"Faraz","table":24},{"first":"HAROON","last":"Faraz","table":24},{"first":"Harris","last":"Chaudhary","table":17},{"first":"Hasan","last":"Noor","table":25},{"first":"Helen A","last":"Uy","table":28},{"first":"Hena","last":"Fatima","table":16},{"first":"Hirra","last":"Chaudhary","table":17},{"first":"Howard","last":"Levine","table":26},{"first":"Huma","last":"Hassan","table":20},{"first":"Humza","last":"Syed","table":8},{"first":"Hunya","last":"Ata","table":10},{"first":"Hussain","last":"Noor","table":25},{"first":"Ibraheem","last":"Alam","table":7},{"first":"Ibrahim","last":"Afzal","table":5},{"first":"Ibrahim","last":"Maududi","table":10},{"first":"Ibrahim","last":"Mirza","table":17},{"first":"Imran","last":"Sarwar","table":6},{"first":"Irfan","last":"Sarwar","table":4},{"first":"Ishrat","last":"Khurshid","table":10},{"first":"ISHRAT","last":"Bokhari","table":15},{"first":"Jennifer","last":"Troncoso","table":21},{"first":"Jessica","last":"Yagual","table":8},{"first":"Jocelyn","last":"Vides","table":16},{"first":"Joe","last":"Belarmino","table":29},{"first":"Jordan","last":"Louie","table":14},{"first":"Joseph","last":"Saleeb","table":27},{"first":"Kanakaraj","last":"Palanisamy","table":26},{"first":"Kavindu","last":"Amarasinghe","table":14},{"first":"Keith","last":"Paugh","table":28},{"first":"Khadija","last":"Khan","table":18},{"first":"Kovil","last":"Ramasamy","table":23},{"first":"Krystalynn","last":"Gomez","table":21},{"first":"Leslie","last":"McGower","table":29},{"first":"Livinus","last":"Njoku","table":28},{"first":"Lois","last":"Delbert","table":28},{"first":"Lubna","last":"Zuberi","table":24},{"first":"Lucy","last":"Piacentini","table":14},{"first":"Luis","last":"Hernandez","table":21},{"first":"Lyza Marie","last":"Asprer","table":28},{"first":"M. Yonus","last":"Sandhu","table":26},{"first":"Madiha","last":"Haque","table":16},{"first":"Maher","last":"Faraz","table":24},{"first":"Manasa","last":"Murthy","table":27},{"first":"Manish","last":"Bhalodia","table":9},{"first":"Manjula","last":"Desai","table":23},{"first":"Maria","last":"Cruz","table":29},{"first":"Mariam","last":"Afzal","table":5},{"first":"Mariam","last":"Malak","table":21},{"first":"Mariam","last":"Saleeb","table":27},{"first":"Mary Ann","last":"Murphy","table":29},{"first":"Maryam","last":"Noor","table":25},{"first":"Maryem","last":"Mirza","table":17},{"first":"Maya","last":"Cruz","table":29},{"first":"Mehnaz","last":"Maududi","table":10},{"first":"Michael","last":"Varnerin","table":9},{"first":"Mikhael","last":"Khan","table":18},{"first":"Mohammad","last":"Khawar Zia","table":4},{"first":"Mohammad","last":"Khurram Zia","table":6},{"first":"Mohammad","last":"Saleem","table":11},{"first":"Mohammad","last":"Naeem","table":11},{"first":"Mohammad","last":"Shameem","table":11},{"first":"Mohammad","last":"Irfan","table":27},{"first":"Mohammad","last":"Shibli","table":30},{"first":"Mohammad S","last":"Ayub","table":22},{"first":"Mohammad Shabbir","last":"Hassan","table":11},{"first":"Mohsin","last":"Khan","table":18},{"first":"Mrs.","last":"Bhalodia","table":9},{"first":"Mrs.","last":"Paugh","table":28},{"first":"Mudassir","last":"Qaisar","table":6},{"first":"Mudassir","last":"Rahmani","table":9},{"first":"Muhammad","last":"Abdullah","table":25},{"first":"muhammad","last":"noor","table":25},{"first":"Munawar","last":"Hasan","table":4},{"first":"Munawar","last":"Hashmi","table":8},{"first":"Munazzah","last":"Kukhari","table":15},{"first":"Musa","last":"Afzal","table":5},{"first":"Mustafa","last":"Bukhari","table":15},{"first":"Muzaffar","last":"Rahmani","table":9},{"first":"Muznah","last":"Mirza","table":17},{"first":"Nabila","last":"Jamil","table":30},{"first":"Nadeem","last":"Haque","table":25},{"first":"Nadia","last":"Ahmad","table":18},{"first":"NADIRA","last":"EJAZ","table":4},{"first":"Naheed","last":"Hussain","table":13},{"first":"Nahela","last":"Morales","table":27},{"first":"Naila","last":"Khawar","table":4},{"first":"Najam","last":"Wasty","table":22},{"first":"Najib","last":"Bokhari","table":15},{"first":"Namira","last":"Rahmani","table":9},{"first":"Narender","last":"Goel","table":26},{"first":"Nasimus Sahar","last":"Ashraf","table":10},{"first":"Nausher","last":"Ahmad","table":22},{"first":"Naveed","last":"Qaisar","table":18},{"first":"Naz","last":"Afzal","table":20},{"first":"Nazia","last":"Haque","table":25},{"first":"Nida","last":"Irfan","table":4},{"first":"Nikhat","last":"Hoda","table":13},{"first":"Niloufer","last":"Quddus","table":19},{"first":"Nishat","last":"Azfar","table":7},{"first":"Nishat","last":"Tahir","table":19},{"first":"Noman","last":"Alam","table":7},{"first":"Noreen","last":"Hashmi","table":6},{"first":"Nudrat","last":"Ayub","table":22},{"first":"Nusrat","last":"Hoda","table":13},{"first":"Omar","last":"Siddiqui","table":30},{"first":"Pedro","last":"Meza","table":21},{"first":"Qaisar","last":"Salim Manazir","table":11},{"first":"Raffat","last":"Fazal","table":30},{"first":"Rafia","last":"hussaini","table":22},{"first":"Rajendra","last":"Desai","table":22},{"first":"Rashid","last":"Syed","table":20},{"first":"Rashidul","last":"Hoda","table":12},{"first":"Rayan","last":"Quddus","table":19},{"first":"Rayyan","last":"Irfan","table":27},{"first":"Razi","last":"Imam","table":11},{"first":"Rehan","last":"Ashraf","table":7},{"first":"Rehana","last":"Iqbal","table":8},{"first":"Rehana","last":"Hoda","table":13},{"first":"Rekha","last":"Iyengar","table":23},{"first":"Renu","last":"Lamba","table":27},{"first":"Rida","last":"Imran","table":6},{"first":"Rizwan","last":"Hussain","table":13},{"first":"Rozi","last":"Imam","table":11},{"first":"Sabih","last":"Bokhari","table":15},{"first":"Sadaf","last":"Afzal","table":5},{"first":"Sadaf","last":"Arshi","table":12},{"first":"Safiah","last":"Ahmed","table":5},{"first":"Sahil","last":"Quddus","table":19},{"first":"Saiful","last":"Hoda","table":13},{"first":"Saima","last":"Iqbal","table":8},{"first":"Saima","last":"Sandhu","table":17},{"first":"Saleha","last":"Bokhari","table":15},{"first":"Salma","last":"Hoda","table":12},{"first":"Salman","last":"Ahmed","table":5},{"first":"Samina","last":"Sarwar","table":6},{"first":"Sammy","last":"Faraz","table":24},{"first":"Saniyya","last":"Maududi","table":10},{"first":"Sanjiv","last":"Patel","table":24},{"first":"Sarina","last":"Matalon","table":14},{"first":"Sarwar","last":"Jameel","table":16},{"first":"Sarwar","last":"Quddus","table":19},{"first":"Sawleha","last":"Ahmed","table":5},{"first":"Seema","last":"Jabeen","table":9},{"first":"Seema","last":"Mathew","table":22},{"first":"Sergio","last":"Leal","table":30},{"first":"Shabbir","last":"Ahmad","table":26},{"first":"Shabib","last":"Afzal","table":20},{"first":"Shabnam","last":"Gupta","table":23},{"first":"Shagufta","last":"Ashraf","table":7},{"first":"Shahab","last":"Izhar","table":30},{"first":"Shaheen","last":"Kauser Salim","table":11},{"first":"shahid","last":"Hassan","table":20},{"first":"Shahmeen","last":"Irshad","table":6},{"first":"Shahnaz","last":"Bokhari","table":15},{"first":"Shakeib","last":"Afzal","table":20},{"first":"Shama","last":"Hassan","table":11},{"first":"Shariq","last":"Ata","table":10},{"first":"Shazeen","last":"Afzal","table":20},{"first":"Shazia","last":"Parveen","table":26},{"first":"Shumaila","last":"Irshad","table":6},{"first":"Sidra","last":"Syed","table":20},{"first":"Sobia","last":"Shameem","table":11},{"first":"Sohira","last":"Mirza","table":17},{"first":"Sophia","last":"Griffith","table":9},{"first":"Sophia","last":"Faraz","table":24},{"first":"Syed","last":"Maududi","table":10},{"first":"Syed","last":"Afzal","table":20},{"first":"Syed Adnan","last":"Bukhari","table":15},{"first":"Syed Amirul","last":"Haque","table":16},{"first":"Syed Ejaz","last":"Ahmad","table":12},{"first":"Tahir","last":"Kukaj","table":30},{"first":"Tazeen","last":"Quddus","table":19},{"first":"Tazzeen","last":"Ashraf","table":22},{"first":"Umar","last":"Asif","table":4},{"first":"Usman","last":"Ashraf","table":4},{"first":"Uzma","last":"Hasan","table":4},{"first":"Vinay","last":"Gupta","table":23},{"first":"WALDY","last":"PERALTA","table":28},{"first":"Wesley","last":"Deixler","table":14},{"first":"XANDER","last":"PERALTA","table":28},{"first":"Yasmeen","last":"Chaudhary","table":17},{"first":"Yusuf","last":"Quddus","table":19},{"first":"Zahra","last":"Hoda","table":13},{"first":"Zain","last":"Rahman","table":10},{"first":"Zain","last":"Siddiqui","table":30},{"first":"Zainab","last":"Sandhu","table":17},{"first":"Zainub","last":"Hoda","table":12}];
+
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1).toLowerCase():'';}
+function fullName(g){return cap(g.first)+' '+cap(g.last);}
+function byLetter(l){return GUESTS.filter(g=>g.last.toUpperCase().startsWith(l)).sort((a,b)=>a.last.localeCompare(b.last)||a.first.localeCompare(b.first));}
+
+function card(g){
+  return `<div class="result-card"><span class="guest-name">${fullName(g)}</span><span class="table-pill">Table <strong>${g.table}</strong></span></div>`;
+}
+
+function renderAlpha(){
+  const grid=document.getElementById('alpha-grid');
+  grid.innerHTML='';
+  for(let i=65;i<=90;i++){
+    const l=String.fromCharCode(i);
+    const has=byLetter(l).length>0;
+    const btn=document.createElement('button');
+    btn.className='alpha-btn'+(has?' has-guests':' empty');
+    btn.textContent=l;
+    if(has) btn.onclick=()=>showLetter(l);
+    grid.appendChild(btn);
+  }
+  document.getElementById('count-note').textContent=GUESTS.length+' guests · Tables 4–30';
+}
+
+function showLetter(l){
+  document.getElementById('view-home').style.display='none';
+  document.getElementById('view-search').style.display='none';
+  document.getElementById('view-letter').style.display='block';
+  document.getElementById('letter-heading').textContent=l;
+  const list=byLetter(l);
+  document.getElementById('letter-results').innerHTML=list.length?list.map(card).join(''):'<div class="empty-msg">No guests found under this letter.</div>';
+}
+
+function showHome(){
+  document.getElementById('view-home').style.display='block';
+  document.getElementById('view-search').style.display='none';
+  document.getElementById('view-letter').style.display='none';
+  document.getElementById('search').value='';
+}
+
+function handleSearch(val){
+  const q=val.trim().toLowerCase();
+  if(!q){
+    document.getElementById('view-home').style.display='block';
+    document.getElementById('view-search').style.display='none';
+    return;
+  }
+  document.getElementById('view-home').style.display='none';
+  document.getElementById('view-search').style.display='block';
+  const matches=GUESTS.filter(g=>
+    g.first.toLowerCase().includes(q)||g.last.toLowerCase().includes(q)
+  ).sort((a,b)=>a.last.localeCompare(b.last));
+  const sr=document.getElementById('search-results');
+  sr.innerHTML=matches.length?matches.map(card).join(''):'<div class="empty-msg">No guests found for "'+val+'"</div>';
+}
+
+renderAlpha();
+</script>
+</body>
+</html>
